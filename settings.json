@@ -5,10 +5,13 @@
     "password": "",
     "type": "offline"
   },
+  {
   "server": {
     "ip": "horse.aternos.host",
     "port": 11237,
-    "version": "1.21.11",
+    "version": "1.21.1"
+  }
+}
     "try-creative": false
   },
   "position": {
