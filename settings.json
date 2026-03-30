@@ -6,7 +6,7 @@
     "type": "offline"
   },
   "server": {
-    "ip": "horse.aternos.host:11237",
+    "ip": "horse.aternos.host",
     "port": 11237,
     "version": "1.21.11",
     "try-creative": false
