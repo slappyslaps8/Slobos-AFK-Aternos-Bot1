@@ -7,26 +7,18 @@ const { GoalBlock } = goals;
 const config = require("./settings.json");
 const express = require("express");
 
-// ============================================================
-// EXPRESS SERVER SETUP
-// ============================================================
 const app = express();
 app.use(express.json());
-
-// Render uses port 10000 by default, or the environment variable
 const PORT = process.env.PORT || 10000; 
 
 let bot;
 let botState = {
   connected: false,
   startTime: Date.now(),
-  reconnectAttempts: 0,
 };
 
-// --- Dashboard Routes ---
+// Dashboard Route
 app.get('/', (req, res) => {
-    // I've kept your extensive HTML dashboard logic here 
-    // (Omitted in this view for brevity, but it's in your file!)
     res.send(`<h1>Bot Dashboard</h1><p>Status: ${botState.connected ? 'Online' : 'Offline'}</p><a href="/logs">View Logs</a>`);
 });
 
@@ -38,25 +30,14 @@ app.get("/health", (req, res) => {
   });
 });
 
-app.post("/start", (req, res) => {
-    if (!botState.connected) {
-        createBot();
-        res.json({ success: true, msg: "Starting bot..." });
-    } else {
-        res.json({ success: false, msg: "Bot is already running." });
-    }
-});
-
-// ============================================================
-// MINEFLAYER BOT LOGIC
-// ============================================================
 function createBot() {
-    addLog(`[System] Attempting to connect to ${config.server.ip}...`);
+    addLog(`[System] Attempting to connect to ${config.server.ip}:${config.server.port}...`);
 
     bot = mineflayer.createBot({
         host: config.server.ip,
         port: parseInt(config.server.port),
-        username: config.name,
+        // Use the actual username from your JSON
+        username: config["bot-account"].username, 
         version: config.server.version,
     });
 
@@ -64,38 +45,32 @@ function createBot() {
 
     bot.on("spawn", () => {
         botState.connected = true;
-        addLog(`[Success] ${config.name} spawned at ${bot.entity.position}`);
+        addLog(`[Success] ${config["bot-account"].username} spawned!`);
         
-        // Anti-AFK & Flight Kick Fix: Force the bot to the ground defined in settings.json
         const mcData = require("minecraft-data")(bot.version);
         const movements = new Movements(bot, mcData);
         bot.pathfinder.setMovements(movements);
 
-        // Move to the exact safe coordinates from your settings.json
-        const target = new GoalBlock(config.coordinates.x, config.coordinates.y, config.coordinates.z);
+        // Fixed: Matching your JSON key "position"
+        const target = new GoalBlock(config.position.x, config.position.y, config.position.z);
         bot.pathfinder.setGoal(target);
     });
 
-    bot.on("error", (err) => {
-        addLog(`[Error] ${err.message}`);
-    });
+    bot.on("error", (err) => addLog(`[Error] ${err.message}`));
 
     bot.on("kicked", (reason) => {
-        const reasonText = typeof reason === 'string' ? reason : JSON.stringify(reason);
-        addLog(`[Kicked] Reason: ${reasonText}`);
+        addLog(`[Kicked] ${reason}`);
         botState.connected = false;
     });
 
     bot.on("end", () => {
-        botState.connected = false;
-        addLog("[System] Connection lost. Reconnecting in 10s...");
-        setTimeout(createBot, 10000);
+      botState.connected = false;
+      addLog("[System] Reconnecting in 15s...");
+      setTimeout(createBot, 15000);
     });
 }
 
-// Start the Express server
 app.listen(PORT, () => {
     addLog(`[Web] Dashboard running on port ${PORT}`);
-    // Start the bot automatically when the server starts
     createBot(); 
 });
