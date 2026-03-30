@@ -1,4 +1,4 @@
-const http = require('http');
+= require('http');
 http.createServer((req, res) => {
   res.write("I'm alive!");
   res.end();
