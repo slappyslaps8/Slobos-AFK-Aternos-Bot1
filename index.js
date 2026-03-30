@@ -1,3 +1,8 @@
+const http = require('http');
+http.createServer((req, res) => {
+  res.write("I'm alive!");
+  res.end();
+}).listen(process.env.PORT || 10000);
 "use strict";
 
 const { addLog, getLogs } = require("./logger");
